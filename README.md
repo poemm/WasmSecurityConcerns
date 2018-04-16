@@ -1,6 +1,8 @@
+
 # SOME CONCERNS ABOUT WEBASSEMBLY SECURITY AND DETERMINISM
 
-For mission-critical code execution, it is good to be aware of possible security and determinism risks. Below is a list of some concerns about WebAssembly execution.
+
+Below are some concerns about WebAssembly execution in mission-critical situations.
 
 
 
@@ -8,17 +10,20 @@ For mission-critical code execution, it is good to be aware of possible security
 
 ### IEEE 754-2008 Floating-point arithmetic
 
+Floating-point operations may require special care for the following reasons.
 
-(1) IEEE 754-2008 operations need not be associative, so modern architectures can allow out-of-order execution of floating-point instructions, which can round to different results. 
+(1) IEEE 754-2008 operations need not be associative, so modern architectures may allow out-of-order execution of floating-point instructions, which can round to different results. Some hardware has a bios switch to prevent out-of-order execution.
 
 (2) `NaN` can to have an arbitrary non-zero significand. 
 
-(3) Some hardware offers less expensive floating-point instruction by default. Some hardware does not even support IEEE754-2008.
+(3) IEEE 754-2008 instructions may not be the most efficient, so some hardware offers optional short-cuts. Some hardware does not even support IEEE754-2008.
+
+A possible solution is to choose conformant hardware which executes instructions in-order, and to canonicalize `NaN`s. If that is not possible, it may be necessary to implement floating-point operations using integers.
 
 
 ### Resource Exhaustion
 
-The Wasm spec does not define a limit on code size, execution stack size, or any other object the runtime must maintain. So system resources can be exhausted. Memory size is bound by the 32-bit address space.
+The Wasm spec does not define a limit on code size, execution stack size, or any other runtime object. So system resources can be exhausted. Memory size is bound by the 32-bit address space. A solution is to have a verification step to limit resources known at compile-time, and to have run-time checks which limit recursion depth.
 
 
 
@@ -28,22 +33,21 @@ The Wasm spec does not define a limit on code size, execution stack size, or any
 
 ### Embedding environment
 
-The Wasm spec does not define an embedding environment or an ABI for Wasm. For example, the Javascript API allows modules to be executed by asynchronous methods, which may not be desired.
+The Wasm spec does _not_ define an embedding environment or an ABI for Wasm. For example, many Javascript APIs for Wasm allow modules to be instantiated and executed asynchronously, which may not be desired.
 
 
 ### Breaking out of VM sandbox
 
-CPU executable memory may also be writable. "JIT spraying" is writing arbitrary instructions to memory, then somehow redirecting execution to those instructions. The common solution is for the operating system to mark pages as writable xor executable ("W^X"). For example, Firefox 46 (2016) implements a W^X policy.
+JIT spraying is writing arbitrary instructions to memory, then somehow redirecting execution to those instructions. The common solution is for the operating system to mark pages as writable xor executable ("W^X"). This is relevant to any VM which generates and executes binary code. For example, Firefox 46 (2016) implements a W^X policy.
 
 
 
 ### JITs
 
-Modern JITs are based on interpreters, compilers to assembly, and optimizing compilers with intermediate representation (IR) with optimization passes. For example, Firefox starts with a single-pass translation from Wasm to native assembly which allows execution to begin, while, in the background, the Ion compiler is busy performing an optimized compilation.
+A modern JIT can include an interpreter, a basic compiler, and an optimizing compilers. For example, Firefox starts with a basic single-pass compiler from Wasm to native assembly which allows execution to begin, while, in the background, the Ion compiler performs an optimized compilation.
 
-Some JITs use profilers/tracers which heuristically trigger optimizations when a chunk of code becomes "hot".
 
-Optimizations and heuristics may introduce bugs, and may be difficult to prove correct.
+Some JITs use profilers/tracers which heuristically trigger compilation of "hot" code. Compilation may involve an intermediate representation (IR) with optimization passes. These heuristics and optimizations may introduce bugs, or invariants which make it easy to introduce bugs. It may be difficult to prove correctness of something so complicated.
 
 
 
@@ -52,14 +56,15 @@ Optimizations and heuristics may introduce bugs, and may be difficult to prove c
 
 ## COMPILER-LEVEL
 
-### Compilers bugs.
 
-The translations, optimization passes, or register allocation algorithms may not preserve execution semantics, there are many subtleties.
+### Compiler bugs.
+
+The translations, optimization passes, or register allocation algorithms may not preserve execution semantics. There are many subtleties in all of these areas.
 
 
 ### Undefined behavior.
 
-A language with undefined behavior may be compiled to unwanted behavior in Wasm.
+A language with undefined behavior may be compiled to unwanted behavior in Wasm. Wasm only guarantees type-safety.
 
 
 
@@ -67,9 +72,10 @@ A language with undefined behavior may be compiled to unwanted behavior in Wasm.
 
 ## HARDWARE-LEVEL
 
+
 ### Hardware Bugs and Backdoors
 
-Modern hardware may not be fully tested. Bugs have been found. For mission-critical things, it may be wise to add redundancy with a variety of architectures.
+Modern hardware is complicated (micro-ops, instruction queues, dependency chains, pipelining, etc). It is rumored that modern CPUs may not be fully tested. Bugs have been found. For mission-critical tasks, it may be wise to add redundancy with a variety of architectures.
 
 http://danluu.com/cpu-bugs/
 
@@ -79,11 +85,18 @@ http://danluu.com/cpu-backdoors/
 
 ### Cosmic Rays
 
-Cosmic rays may cause errors in electronics. The problem is worse with smaller transistors. ECC may be useful, but only for RAM. NASA uses redundancy and large transisitors.
+Cosmic rays may cause errors in electronics. The problem is worse with smaller transistors. ECC may be useful for RAM.
 
 
 
 ### Bottlenecks, Denial of Service
 
-An attacker can exploit bottlenecks in hardware, causing slow execution. For example, an attacker can exhaust cache causing all memory instructions to go to RAM.
+If arbitrary code is to be executed, an attacker can exploit bottlenecks in hardware, causing slow execution. For example, an attacker can exhaust cache, causing all memory instructions to go to RAM.
+
+
+
+
+## CONCLUSIONS
+
+For mission-critical computation, it may be wise to add redundancy and variety in both hardware and software. And to use simple toolchains which can be auditted.
 
