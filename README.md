@@ -6,7 +6,7 @@ Below are some concerns about WebAssembly execution in mission-critical situatio
 
 
 
-## SPEC-LEVEL
+## 1. SPEC-LEVEL
 
 ### IEEE 754-2008 Floating-point arithmetic
 
@@ -29,7 +29,7 @@ The Wasm spec does not define a limit on code size, execution stack size, or any
 
 
 
-## EMBEDDING-LEVEL
+## 2. EMBEDDING-LEVEL
 
 ### Embedding environment
 
@@ -54,7 +54,7 @@ Some JITs use profilers/tracers which heuristically trigger compilation of "hot"
 
 
 
-## COMPILER-LEVEL
+## 3. COMPILER-LEVEL
 
 
 ### Compiler bugs.
@@ -70,7 +70,7 @@ A language with undefined behavior may be compiled to unwanted behavior in Wasm.
 
 
 
-## HARDWARE-LEVEL
+## 4. HARDWARE-LEVEL
 
 
 ### Hardware Bugs and Backdoors
@@ -78,6 +78,8 @@ A language with undefined behavior may be compiled to unwanted behavior in Wasm.
 Modern hardware is complicated (micro-ops, instruction queues, dependency chains, pipelining, etc). It is rumored that modern CPUs may not be fully tested. Bugs have been found. For mission-critical tasks, it may be wise to add redundancy with a variety of architectures.
 
 http://danluu.com/cpu-bugs/
+
+There may also be backdoors.
 
 http://danluu.com/cpu-backdoors/
 
@@ -96,7 +98,7 @@ If arbitrary code is to be executed, an attacker can exploit bottlenecks in hard
 
 
 
-## CONCLUSIONS
+## 5. CONCLUSIONS
 
 For mission-critical computation, it may be wise to add redundancy and variety in both hardware and software. And to use simple toolchains which can be auditted.
 
