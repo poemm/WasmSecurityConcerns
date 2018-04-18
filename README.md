@@ -33,7 +33,9 @@ The Wasm spec does not define a limit on code size, execution stack size, or any
 
 ### Embedding environment
 
-The Wasm spec does _not_ define an embedding environment or an ABI for Wasm. For example, many Javascript APIs for Wasm allow modules to be instantiated and executed asynchronously, which may not be desired.
+The Wasm spec does _not_ define an embedding environment, API, or ABI for Wasm. For example, many Javascript APIs for Wasm allow modules to be instantiated and executed asynchronously, which may not be desired.
+
+Implementations need not validate functions until they are called. So one implementations can successful execute while another can return an instantiation error due to an uncalled function being invalid.
 
 
 ### Breaking out of VM sandbox
