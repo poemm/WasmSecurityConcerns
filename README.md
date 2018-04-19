@@ -31,17 +31,27 @@ The Wasm spec does not define a limit on code size, execution stack size, or any
 
 ## 2. EMBEDDING-LEVEL
 
-### Embedding environment
+The Wasm spec does _not_ define an embedding environment, API, or ABI for Wasm. The environment may not adhere fully to the spec.
 
-The Wasm spec does _not_ define an embedding environment, API, or ABI for Wasm. For example, many Javascript APIs for Wasm allow modules to be instantiated and executed asynchronously, which may not be desired.
 
-Implementations need not validate functions until they are called. So one implementations can successful execute while another can return an instantiation error due to an uncalled function being invalid.
+### Validation
+
+The Wasm spec says that invalid functions should trap. Some implementations may begin executing a function before it is fully validated (this is against the spec, but optimizations may be more important). Other implementations may return errors when a function is invalid, and this check can happen at any time.
+
+
+### Resource exhaustion errors
+
+Errors for resource exhaustion may depend on the embedding environment and on the state of the system.
 
 
 ### Breaking out of VM sandbox
 
 JIT spraying is writing arbitrary instructions to memory, then somehow redirecting execution to those instructions. The common solution is for the operating system to mark pages as writable xor executable ("W^X"). This is relevant to any VM which generates and executes binary code. For example, Firefox 46 (2016) implements a W^X policy.
 
+
+### Asynchronous execution
+
+Many Javascript implementations of Wasm allow modules to be instantiated and executed asynchronously, which may not be desired.
 
 
 ### JITs
