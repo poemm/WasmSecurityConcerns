@@ -36,7 +36,17 @@ The Wasm spec does _not_ define an embedding environment, API, or ABI for Wasm. 
 
 ### Validation
 
-The Wasm spec says that invalid functions should trap. Some implementations may begin executing a function before it is fully validated (this is against the spec, but optimizations may be more important). Other implementations may return errors when a function is invalid, and this check can happen at any time.
+> Wasm Spec Section 3.4: Modules are valid when all components they contain are valid.
+
+So a module with an invalid function is invalid.
+
+> Wasm Spec Section 4.5.4: if module is not valid, then Fail.
+
+The above excerpt refers to instantiation. So validity must be checked before execution.
+
+> Wasm Spec Section 7.2.2: An implementation can defer validation of individual functions until they are first invoked. ... invalid functions result in a trap. ... the function must be validated before execution of its body begins.
+
+This excerpt contradicts the previous one.
 
 
 ### Resource exhaustion errors
