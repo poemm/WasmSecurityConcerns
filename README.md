@@ -17,16 +17,16 @@ Below are some concerns about WebAssembly execution in mission-critical situatio
 
 > Wasm Spec Section 7.2.2: An implementation can defer validation of individual functions until they are first invoked. ... invalid functions result in a trap. ... the function must be validated before execution of its body begins.
 
-The third quote goes against the earlier specification.
+The third quote breaks earlier requirements.
 
 
 ### Undefined Behavior
 
-> Wasm Spec Section 4.3.2: idivu N (i1 , i2 ) If i2 is 0, then the result is undefined.
+> Wasm Spec Section 4.3.2: idivu N(i1,i2) If i2 is 0, then the result is undefined.
 
 > Wasm Spec Section 7.5: Soundness implies ... there is no undefined behavior.
 
-The first quote states undefined behavior. The spec should say it traps.
+If we have soundness, then why is there undefined behavior with division? Does it trap?
 
 
 ### IEEE 754-2008 Floating-point arithmetic
