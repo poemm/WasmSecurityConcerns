@@ -8,6 +8,27 @@ Below are some concerns about WebAssembly execution in mission-critical situatio
 
 ## 1. SPEC-LEVEL
 
+
+### Validation
+
+> Wasm Spec Section 3.4: Modules are valid when all components they contain are valid.
+
+> Wasm Spec Section 4.5.4: Instantiation: if module is not valid, then Fail.
+
+> Wasm Spec Section 7.2.2: An implementation can defer validation of individual functions until they are first invoked. ... invalid functions result in a trap. ... the function must be validated before execution of its body begins.
+
+The third quote goes against the earlier specification.
+
+
+### Undefined Behavior
+
+> Wasm Spec Section 4.3.2: idivu N (i1 , i2 ) If i2 is 0, then the result is undefined.
+
+> Wasm Spec Section 7.5: Soundness implies ... there is no undefined behavior.
+
+The first quote states undefined behavior. The spec should say it traps.
+
+
 ### IEEE 754-2008 Floating-point arithmetic
 
 Floating-point operations may require special care for the following reasons.
@@ -21,12 +42,6 @@ Floating-point operations may require special care for the following reasons.
 A possible solution is to choose conformant hardware which executes instructions in-order, and to canonicalize `NaN`s. If that is not possible, it may be necessary to implement floating-point operations using integers.
 
 
-### Resource Exhaustion
-
-The Wasm spec does not define a limit on code size, execution stack size, or any other runtime object. So system resources can be exhausted. Memory size is bound by the 32-bit address space. A solution is to have a verification step to limit resources known at compile-time, and to have run-time checks which limit recursion depth.
-
-
-
 
 
 ## 2. EMBEDDING-LEVEL
@@ -34,24 +49,9 @@ The Wasm spec does not define a limit on code size, execution stack size, or any
 The Wasm spec does _not_ define an embedding environment, API, or ABI for Wasm. The environment may not adhere fully to the spec.
 
 
-### Validation
+### Resource Exhaustion
 
-> Wasm Spec Section 3.4: Modules are valid when all components they contain are valid.
-
-So a module with an invalid function is invalid.
-
-> Wasm Spec Section 4.5.4: if module is not valid, then Fail.
-
-The above excerpt refers to instantiation. So validity must be checked before execution.
-
-> Wasm Spec Section 7.2.2: An implementation can defer validation of individual functions until they are first invoked. ... invalid functions result in a trap. ... the function must be validated before execution of its body begins.
-
-This excerpt contradicts the previous one.
-
-
-### Resource exhaustion errors
-
-Errors for resource exhaustion may depend on the embedding environment and on the state of the system.
+The Wasm spec does not define a limit on code size, execution stack size, or any other runtime object. So system resources can be exhausted. Memory size is bound by the 32-bit address space. A solution is to have a verification step to limit resources known at compile-time, and to have run-time checks which limit recursion depth. Resource availability may depend on the embedding environment and on the system.
 
 
 ### Breaking out of VM sandbox
