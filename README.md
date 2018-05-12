@@ -8,27 +8,6 @@ Below are some concerns about WebAssembly execution in mission-critical situatio
 
 ## 1. SPEC-LEVEL
 
-
-### Validation
-
-> Wasm Spec Section 3.4: Modules are valid when all components they contain are valid.
-
-> Wasm Spec Section 4.5.4: Instantiation: if module is not valid, then Fail.
-
-> Wasm Spec Section 7.2.2: An implementation can defer validation of individual functions until they are first invoked. ... invalid functions result in a trap. ... the function must be validated before execution of its body begins.
-
-The third quote breaks earlier requirements.
-
-
-### Undefined Behavior
-
-> Wasm Spec Section 4.3.2: idivu N(i1,i2) If i2 is 0, then the result is undefined.
-
-> Wasm Spec Section 7.5: Soundness implies ... there is no undefined behavior.
-
-If we have soundness, then why is there undefined behavior with division? Does it trap?
-
-
 ### IEEE 754-2008 Floating-point arithmetic
 
 Floating-point operations may require special care for the following reasons.
@@ -43,15 +22,35 @@ A possible solution is to choose conformant hardware which executes instructions
 
 
 
+### Resource Exhaustion
+
+The Wasm spec does not define a limit on code size, execution stack size, or any other runtime object. So system resources can be exhausted. Memory size is bound by the 32-bit address space. A solution is to have a verification step to limit resources known at compile-time, and to have run-time checks which limit recursion depth.
+
+
+### Growing Memory
+
+Opcode memory.grow is non-deterministic, it can always fail.
+
+
 
 ## 2. EMBEDDING-LEVEL
 
 The Wasm spec does _not_ define an embedding environment, API, or ABI for Wasm. The environment may not adhere fully to the spec.
 
 
-### Resource Exhaustion
+### Validation
 
-The Wasm spec does not define a limit on code size, execution stack size, or any other runtime object. So system resources can be exhausted. Memory size is bound by the 32-bit address space. A solution is to have a verification step to limit resources known at compile-time, and to have run-time checks which limit recursion depth. Resource availability may depend on the embedding environment and on the system.
+The Wasm spec says that invalid functions should trap. Some implementations may begin executing a function before it is fully validated (this is against the spec, but optimizations may be more important). Other implementations may return errors when a function is invalid, and this check can happen at any time.
+
+
+### Not Following Spec Semantics
+
+It is said that most embeddings used in practice do not follow the spec's execution semantics with one stack, but instead use two separate stacks for operands and control labels -- these semantics may not match those of the spec. Some implementations may use a third stack to be maintain function call-frames -- if this is done with native function calls, it may be expensive on system resources.
+
+
+### Resource exhaustion errors
+
+Errors for resource exhaustion may depend on the embedding environment and on the state of the system.
 
 
 ### Breaking out of VM sandbox
@@ -62,6 +61,11 @@ JIT spraying is writing arbitrary instructions to memory, then somehow redirecti
 ### Asynchronous execution
 
 Many Javascript implementations of Wasm allow modules to be instantiated and executed asynchronously, which may not be desired.
+
+
+### Host Functions
+
+In the specification sections 4.2.6 and 4.4.7, host functions are allowed to behave non-deterministically, with few constraints.
 
 
 ### JITs
@@ -105,6 +109,9 @@ There may also be backdoors.
 
 http://danluu.com/cpu-backdoors/
 
+Hardware documentation may be unclear and incomplete.
+
+https://news.ycombinator.com/item?id=17037862
 
 
 ### Cosmic Rays
