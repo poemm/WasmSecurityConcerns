@@ -2,7 +2,7 @@
 # SOME CONCERNS ABOUT WEBASSEMBLY SECURITY AND DETERMINISM
 
 
-Below are some concerns about WebAssembly execution in mission-critical situations.
+Below are some concerns about WebAssembly execution in mission-critical situations, including when the code may be adversarial.
 
 
 
