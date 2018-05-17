@@ -2,7 +2,7 @@
 # SOME CONCERNS ABOUT WEBASSEMBLY SECURITY AND DETERMINISM
 
 
-Below are some concerns about WebAssembly execution in mission-critical situations, including when the code may be adversarial.
+Below are some concerns about WebAssembly security, including mission-critical situations and when the code may be adversarial.
 
 
 
@@ -28,30 +28,30 @@ Floating-point operations may require special care for the following reasons.
 
 (2) `NaN` can to have an arbitrary non-zero significand.
 
-(3) IEEE 754-2008 instructions may not be the most efficient, so some hardware offers optional short-cuts. Some hardware does not even support IEEE754-2008.
+(3) IEEE 754-2008 may be inefficient, so some hardware offer optional short-cuts. Some hardware does not even support IEEE754-2008.
 
 A possible solution is to choose conformant hardware which executes instructions in-order, and to canonicalize `NaN`s. If that is not possible, it may be necessary to implement floating-point operations using integers.
 
 
-### Growing Memory
+### Non-deterministic behavior.
 
-Opcode memory.grow is non-deterministic, it can always fail.
+Some opcodes, such as `memory.grow`, are non-deterministic.
 
 
 
 ## 2. EMBEDDING-LEVEL
 
-The Wasm spec does _not_ define an embedding environment, API, or ABI for Wasm. The environment may not adhere fully to the spec.
+The Wasm spec does _not_ define an embedding environment, API, or ABI for Wasm.
 
 
 ### Not Following Spec Semantics
 
-It is said that most embeddings used in practice do not follow the spec's execution semantics with one stack, but instead use two separate stacks for operands and control labels -- these semantics may not match those of the spec. Some implementations may use a third stack to be maintain function call-frames -- if this is done with native function calls, it may be expensive on system resources.
+For speed optimizations, embeddings deviate from the spec's execution semantics. For example, many implementations use separate stacks for operands, control labels, and function call-frames. Proofs are needed that these modified semantics are equivalent to the spec semantics.
 
 
 ### Resource Exhaustion
 
-The Wasm spec does not define a limit on code size, execution stack size, or any other runtime object. So system resources can be exhausted. Memory size is bound by the 32-bit address space. A solution is to have a verification step to limit resources known at compile-time, and to have run-time checks which limit recursion depth. Resource availability may depend on the embedding environment and on the system.
+The Wasm spec does not define a limit on code size or most runtime objects. So system resources can be exhausted. Resource availability may depend on the embedding environment and on the system.
 
 
 ### Breaking out of VM sandbox
@@ -66,7 +66,7 @@ Many Javascript implementations of Wasm allow modules to be instantiated and exe
 
 ### JITs
 
-A modern JIT can include an interpreter, a basic compiler, and an optimizing compilers. For example, Firefox starts with a basic single-pass compiler from Wasm to native assembly which allows execution to begin, while, in the background, the Ion compiler performs an optimized compilation.
+A modern JIT can include an interpreter, a basic compiler, and an optimizing compilers. For example, Firefox starts with a basic single-pass compiler from Wasm to native assembly, which allows execution to begin, while, in the background, the Ion compiler performs an optimized compilation.
 
 
 Some JITs use profilers/tracers which heuristically trigger compilation of "hot" code. Compilation may involve an intermediate representation (IR) with optimization passes. These heuristics and optimizations may introduce bugs, or invariants which make it easy to introduce bugs. It may be difficult to prove correctness of something so complicated.
@@ -75,8 +75,6 @@ Some JITs use profilers/tracers which heuristically trigger compilation of "hot"
 ### Host Functions
 
 In the specification sections 4.2.6 and 4.4.7, host functions are allowed to behave non-deterministically, with few constraints.
-
-
 
 
 
@@ -102,9 +100,14 @@ A language with undefined behavior may be compiled to unwanted behavior in Wasm.
 ## 4. HARDWARE-LEVEL
 
 
+### Bottlenecks, Denial of Service
+
+If arbitrary code is to be executed, an attacker can exploit bottlenecks in hardware, causing slow execution. For example, an attacker can write a function with thousands or millions of local variables (using the shorthand vector notation in binary wasm) and call the function recursively, which will quickly exhaust cache or RAM.
+
+
 ### Hardware Bugs and Backdoors
 
-Modern hardware is complicated (micro-ops, instruction queues, dependency chains, pipelining, etc). It is rumored that modern CPUs may not be fully tested. Bugs have been found. For mission-critical tasks, it may be wise to add redundancy with a variety of architectures.
+Modern hardware is complicated (micro-ops, instruction queues, dependency chains, pipelining, etc, all in hardware). It is rumored that modern CPUs are too comlicated to be fully tested. Bugs have been found.
 
 http://danluu.com/cpu-bugs/
 
@@ -122,14 +125,11 @@ https://news.ycombinator.com/item?id=17037862
 Cosmic rays may cause errors in electronics. The problem is worse with smaller transistors. ECC may be useful for RAM.
 
 
-### Bottlenecks, Denial of Service
-
-If arbitrary code is to be executed, an attacker can exploit bottlenecks in hardware, causing slow execution. For example, an attacker can exhaust cache, causing all memory instructions to go to RAM.
-
 
 
 
 ## 5. CONCLUSIONS
 
-For mission-critical computation, it may be wise to add redundancy and variety in both hardware and software. And to use simple toolchains which can be auditted.
+It may be wise to have redundancy and variety in both hardware and software. And to use simple toolchains which can be auditted.
+
 
