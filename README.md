@@ -1,8 +1,10 @@
 
+**THIS IS A WORK-IN-PROGRESS AS I READ THE WEBASSEMBLY SPECIFICATION**
+
 # SOME CONCERNS ABOUT WEBASSEMBLY SECURITY AND DETERMINISM
 
 
-Below are some concerns about WebAssembly security, including mission-critical situations and when the code may be adversarial.
+Below are some concerns about WebAssembly security, especially in mission-critical situations and when the code may be adversarial.
 
 
 
@@ -94,6 +96,10 @@ The translations, optimization passes, or register allocation algorithms may not
 A language with undefined behavior may be compiled to unwanted behavior in Wasm. Wasm only guarantees type-safety.
 
 
+### Compiler run-time.
+
+Some code may take especially long to compile, which could be used in a Denial-of-Service attack.
+
 
 
 
@@ -130,6 +136,6 @@ Cosmic rays may cause errors in electronics. The problem is worse with smaller t
 
 ## 5. CONCLUSIONS
 
-It may be wise to have redundancy and variety in both hardware and software. And to use simple toolchains which can be auditted.
+It may be wise to have redundancy and variety in both hardware and software. And to use simple toolchains which can be audited. And to somehow penalize every Denial-of-Service vulnerability.
 
 
